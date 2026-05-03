@@ -1,25 +1,30 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  
+  base: "/",
+
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true
-      }
-    }
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
+    },
   },
+
   build: {
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          charts: ['recharts'],
-          motion: ['framer-motion']
-        }
-      }
-    }
-  }
-})
+          vendor: ["react", "react-dom", "react-router-dom"],
+          motion: ["framer-motion"],
+          charts: ["recharts"],
+        },
+      },
+    },
+  },
+});
