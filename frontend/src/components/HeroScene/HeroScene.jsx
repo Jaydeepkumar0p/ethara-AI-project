@@ -23,6 +23,15 @@ const HeroScene = () => {
   const low = isLowEnd()
   const cloud1Ref = useRef(null)
   const cloud2Ref = useRef(null)
+  const prevThemeRef = useRef(theme)
+
+  // Auto refresh when theme changes
+  useEffect(() => {
+    if (prevThemeRef.current !== theme) {
+      prevThemeRef.current = theme
+      window.location.reload()
+    }
+  }, [theme])
 
   // Subtle cloud parallax only — no layout height manipulation
   useEffect(() => {
