@@ -19,6 +19,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "https://eatharaproject.vercel.app",
+  "https://ethara-ai-project-jade.vercel.app"
 ];
 
 app.use(
