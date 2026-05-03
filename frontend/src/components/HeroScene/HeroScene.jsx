@@ -1,15 +1,12 @@
-import { useRef, useEffect, useState, useCallback } from 'react'
+import { useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import useThemeStore from '../../store/themeStore'
 
 const isLowEnd = () => {
-  try {
-    return navigator.hardwareConcurrency <= 2
-  } catch { return false }
+  try { return navigator.hardwareConcurrency <= 2 } catch { return false }
 }
 
-// Stable random values (generated once, not on every render)
 const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
   id: i, x: 5 + (i * 8.3) % 90, y: 10 + (i * 7.1) % 65,
   size: 1 + (i % 3), delay: (i * 0.6) % 4, duration: 3 + (i % 4)
@@ -25,7 +22,6 @@ const HeroScene = () => {
   const isDark = theme === 'dark'
   const low = isLowEnd()
 
-  // Refs for DOM manipulation (no state = no re-renders during scroll)
   const grad0 = useRef(null)
   const grad1 = useRef(null)
   const grad2 = useRef(null)
@@ -35,8 +31,8 @@ const HeroScene = () => {
   const heroTextRef = useRef(null)
   const ctaRef = useRef(null)
   const particlesRef = useRef(null)
+  const containerRef = useRef(null)
 
-  // Scroll animation via RAF
   useEffect(() => {
     let rafId = null
     let lastScroll = -1
@@ -46,14 +42,14 @@ const HeroScene = () => {
       if (scrollTop === lastScroll) { rafId = requestAnimationFrame(animate); return }
       lastScroll = scrollTop
 
-      const docH = document.documentElement.scrollHeight - window.innerHeight
-      const prog = docH > 0 ? Math.min(scrollTop / docH, 1) : 0
+      // Use container height instead of full doc for scroll progress
+      const containerH = containerRef.current ? containerRef.current.offsetHeight - window.innerHeight : window.innerHeight
+      const prog = containerH > 0 ? Math.min(scrollTop / containerH, 1) : 0
 
-      const p1 = Math.min(prog / 0.3, 1)
-      const p2 = Math.min(Math.max((prog - 0.3) / 0.3, 0), 1)
-      const p3 = Math.min(Math.max((prog - 0.6) / 0.4, 0), 1)
+      const p1 = Math.min(prog / 0.4, 1)
+      const p2 = Math.min(Math.max((prog - 0.3) / 0.35, 0), 1)
+      const p3 = Math.min(Math.max((prog - 0.65) / 0.35, 0), 1)
 
-      // Sky gradient stops (direct DOM attr - no React re-render)
       if (grad0.current && grad1.current && grad2.current) {
         if (isDark) {
           grad0.current.setAttribute('stop-color', `hsl(240,50%,${5 + p1 * 12}%)`)
@@ -66,32 +62,27 @@ const HeroScene = () => {
         }
       }
 
-      // Clouds
       if (!low) {
         if (cloud1Ref.current) cloud1Ref.current.style.transform = `translateX(${p1 * -40}px)`
         if (cloud2Ref.current) cloud2Ref.current.style.transform = `translateX(${p1 * 30}px)`
       }
 
-      // City fade in
       if (cityRef.current) {
         cityRef.current.style.opacity = p2
         cityRef.current.style.transform = `translateY(${(1 - p2) * 25}px)`
       }
 
-      // Hero text
       if (heroTextRef.current) {
         heroTextRef.current.style.opacity = Math.max(1 - p2 * 2.5, 0)
         heroTextRef.current.style.transform = `translateY(${-p2 * 40}px)`
       }
 
-      // CTA
       if (ctaRef.current) {
-        const show = Math.min(Math.max((prog - 0.25) / 0.15, 0), 1)
+        const show = Math.min(Math.max((prog - 0.2) / 0.2, 0), 1)
         ctaRef.current.style.opacity = show
         ctaRef.current.style.transform = `translateY(${(1 - show) * 20}px)`
       }
 
-      // Particles fade out
       if (particlesRef.current) {
         particlesRef.current.style.opacity = Math.max(1 - p3 * 3, 0)
       }
@@ -108,12 +99,10 @@ const HeroScene = () => {
     : { c0: '#6d28d9', c1: '#9333ea', c2: '#ea580c' }
 
   return (
-    // 200vh scroll area = enough for 3 phases without excessive blank space
-    <div className="relative" style={{ height: '220vh' }}>
-      {/* Sticky full-screen canvas */}
+    // ✅ Reduced from 220vh → 150vh to eliminate blank space
+    <div ref={containerRef} className="relative" style={{ height: '150vh' }}>
       <div className="sticky top-0 h-screen overflow-hidden" style={{ contain: 'paint layout' }}>
 
-        {/* ── SVG Sky ── */}
         <svg
           viewBox="0 0 1440 900"
           preserveAspectRatio="xMidYMid slice"
@@ -141,19 +130,17 @@ const HeroScene = () => {
             </radialGradient>
             <filter id="tf-glow" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="4" result="blur" />
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
             </filter>
             <filter id="tf-soft" x="-100%" y="-100%" width="300%" height="300%">
               <feGaussianBlur stdDeviation="10" result="blur" />
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
             </filter>
           </defs>
 
-          {/* Sky background */}
           <rect width="1440" height="900" fill="url(#tf-sky)" />
           <rect width="1440" height="900" fill="url(#tf-horizon)" />
 
-          {/* Stars — dark mode only */}
           {isDark && !low && STARS.map(s => (
             <circle key={s.id} cx={`${s.x}%`} cy={`${s.y}%`} r={s.size}
               fill="white" opacity={0.5 + (s.id % 5) * 0.1}
@@ -161,7 +148,6 @@ const HeroScene = () => {
             />
           ))}
 
-          {/* Moon / Sun orb */}
           <g filter="url(#tf-soft)">
             <circle cx="720" cy="185" r="90" fill="url(#tf-orb)" />
           </g>
@@ -176,7 +162,6 @@ const HeroScene = () => {
             <circle cx="714" cy="200" r="4" fill="rgba(0,0,0,0.08)" />
           </>}
 
-          {/* Clouds layer 1 */}
           <g ref={cloud1Ref} style={{ willChange: 'transform' }}>
             <g opacity={isDark ? 0.14 : 0.75}>
               <ellipse cx="280" cy="270" rx="110" ry="36" fill={isDark ? '#4f46e5' : 'white'} />
@@ -192,7 +177,6 @@ const HeroScene = () => {
             </g>
           </g>
 
-          {/* Clouds layer 2 */}
           <g ref={cloud2Ref} style={{ willChange: 'transform' }}>
             <g opacity={isDark ? 0.06 : 0.38}>
               <ellipse cx="1120" cy="330" rx="85" ry="24" fill={isDark ? '#312e81' : 'white'} />
@@ -206,7 +190,6 @@ const HeroScene = () => {
             </g>
           </g>
 
-          {/* Particles */}
           <g ref={particlesRef}>
             {PARTICLES.map(p => (
               <circle key={p.id} cx={`${p.x}%`} cy={`${p.y}%`} r={p.size}
@@ -218,11 +201,8 @@ const HeroScene = () => {
             ))}
           </g>
 
-          {/* City silhouette — starts invisible, fades in on scroll */}
           <g ref={cityRef} style={{ opacity: 0, willChange: 'transform, opacity' }}>
             <rect x="0" y="810" width="1440" height="90" fill="url(#tf-city)" />
-
-            {/* Far buildings */}
             <g fill={isDark ? '#1a1a3e' : '#1e1b4b'} opacity="0.55">
               {[
                 [0,700,58,120],[55,718,40,102],[98,676,52,144],[148,728,36,92],
@@ -232,8 +212,6 @@ const HeroScene = () => {
                 [1200,678,52,142],[1278,658,62,162],[1380,698,60,122]
               ].map(([x, y, w, h], i) => <rect key={i} x={x} y={y} width={w} height={h} />)}
             </g>
-
-            {/* Near buildings */}
             <g fill={isDark ? '#0c0c22' : '#0d0b1e'}>
               {[
                 [0,748,82,152],[74,768,52,132],[118,738,72,162],[238,758,62,142],
@@ -241,7 +219,6 @@ const HeroScene = () => {
                 [800,738,72,162],[918,698,92,202],[1078,728,82,172],
                 [1198,718,92,182],[1318,738,122,162]
               ].map(([x, y, w, h], i) => <rect key={i} x={x} y={y} width={w} height={h} />)}
-              {/* Tall skyscrapers */}
               <rect x="678" y="595" width="54" height="305" />
               <rect x="689" y="583" width="32" height="14" />
               <rect x="703" y="572" width="4" height="14" />
@@ -249,8 +226,6 @@ const HeroScene = () => {
               <rect x="977" y="563" width="20" height="14" />
               <rect x="986" y="552" width="3" height="14" />
             </g>
-
-            {/* Window lights */}
             <g fill={isDark ? '#fbbf24' : '#fef3c7'} opacity={isDark ? 0.65 : 0.85}>
               {Array.from({ length: 55 }, (_, i) => (
                 <rect key={i}
@@ -260,8 +235,6 @@ const HeroScene = () => {
                 />
               ))}
             </g>
-
-            {/* Horizon glow */}
             <ellipse cx="720" cy="815" rx="420" ry="45"
               fill={isDark ? 'rgba(99,102,241,0.32)' : 'rgba(234,88,12,0.42)'}
               filter="url(#tf-soft)"
@@ -269,7 +242,7 @@ const HeroScene = () => {
           </g>
         </svg>
 
-        {/* ── Hero Text ── */}
+        {/* Hero Text */}
         <div
           ref={heroTextRef}
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6"
@@ -314,7 +287,7 @@ const HeroScene = () => {
           </motion.div>
         </div>
 
-        {/* ── CTA Buttons ── */}
+        {/* CTA Buttons */}
         <div
           ref={ctaRef}
           className="absolute inset-x-0 flex flex-col sm:flex-row items-center justify-center gap-4 px-6"
@@ -350,7 +323,7 @@ const HeroScene = () => {
           </motion.button>
         </div>
 
-        {/* ── Scroll hint ── */}
+        {/* Scroll hint */}
         <motion.div
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
           initial={{ opacity: 0 }}
@@ -364,7 +337,7 @@ const HeroScene = () => {
           </div>
         </motion.div>
 
-      </div>{/* end sticky */}
+      </div>
     </div>
   )
 }
