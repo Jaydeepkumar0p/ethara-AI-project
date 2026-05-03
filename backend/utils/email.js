@@ -10,7 +10,10 @@ const createTransport = () => nodemailer.createTransport({
   },
   tls: {
     rejectUnauthorized: false
-  }
+  },
+  connectionTimeout: 5000,
+  greetingTimeout: 5000,
+  socketTimeout: 5000
 });
 
 const emailTemplates = {
@@ -146,14 +149,14 @@ const sendEmail = async (to, templateName, ...args) => {
   try {
     const transport = createTransport();
     const template = emailTemplates[templateName](...args);
-    
+
     await transport.sendMail({
       from: process.env.EMAIL_FROM,
       to,
       subject: template.subject,
       html: template.html
     });
-    
+
     console.log(`✉️ Email sent: ${templateName} → ${to}`);
     return true;
   } catch (error) {
