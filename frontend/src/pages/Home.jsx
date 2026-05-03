@@ -99,7 +99,8 @@ const fadeUp = (delay = 0) => ({
 
 const HomePage = () => {
   const { theme } = useThemeStore()
-  const isDark = theme === 'dark'
+  
+const isDark = theme === 'taskflow'  
 
   return (
     <div className="overflow-x-hidden">
