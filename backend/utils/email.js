@@ -1,32 +1,15 @@
 const nodemailer = require('nodemailer');
 
-// ===============================
-// FIXED TRANSPORT CONFIG
-// ===============================
 const createTransport = () => nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-
-  // ✅ ensure correct number type
-  port: Number(process.env.EMAIL_PORT),
-
-  // ✅ FIX: correct secure check (string vs number issue)
-  secure: Number(process.env.EMAIL_PORT) === 465,
-
+  port: parseInt(process.env.EMAIL_PORT),
+  secure: process.env.EMAIL_PORT === '465',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
-  },
-
-  // ✅ FIX: prevents TLS connection crash (important for Render)
-  tls: {
-    rejectUnauthorized: false
   }
 });
 
-
-// ===============================
-// EMAIL TEMPLATES (UNCHANGED)
-// ===============================
 const emailTemplates = {
   welcome: (name) => ({
     subject: '🚀 Welcome to TaskFlow!',
@@ -156,17 +139,9 @@ const emailTemplates = {
   })
 };
 
-
-// ===============================
-// SEND EMAIL FUNCTION (FIXED)
-// ===============================
 const sendEmail = async (to, templateName, ...args) => {
   try {
     const transport = createTransport();
-
-    // ✅ optional but helps debug connection issues
-    await transport.verify();
-
     const template = emailTemplates[templateName](...args);
     
     await transport.sendMail({
@@ -178,10 +153,9 @@ const sendEmail = async (to, templateName, ...args) => {
     
     console.log(`✉️ Email sent: ${templateName} → ${to}`);
     return true;
-
   } catch (error) {
     console.error('❌ Email error:', error.message);
-    return false;
+    return false; // Don't throw - email failures shouldn't break the app
   }
 };
 
