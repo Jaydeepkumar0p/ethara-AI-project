@@ -24,7 +24,6 @@ const HeroScene = () => {
   const cloud1Ref = useRef(null)
   const cloud2Ref = useRef(null)
 
-  // Subtle cloud parallax only — no layout height manipulation
   useEffect(() => {
     if (low) return
     let rafId = null
@@ -48,10 +47,67 @@ const HeroScene = () => {
     : { c0: '#5b21b6', c1: '#7c3aed', c2: '#c2410c' }
 
   return (
-    // Exactly 100vh — zero extra scroll height = zero blank space
     <section className="relative w-full overflow-hidden" style={{ height: '100vh', minHeight: 560 }}>
 
-      {/* SVG Sky */}
+      {/* ── Animated gradient keyframes ── */}
+      <style>{`
+        @keyframes scrollBob {
+          0%, 100% { transform: translateY(0); opacity: 0.5; }
+          50%       { transform: translateY(5px); opacity: 1; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50%       { transform: translateY(-6px); }
+        }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; }
+          50%       { opacity: 0.85; }
+        }
+
+        /* ── "Effortlessly." animated gradient — FIXED, theme-independent ── */
+        @keyframes gradientShift {
+          0%   { background-position: 0%   50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0%   50%; }
+        }
+        @keyframes shimmer {
+          0%   { opacity: 0.85; }
+          50%  { opacity: 1; }
+          100% { opacity: 0.85; }
+        }
+
+        .hero-effortlessly {
+          /* Purple → violet → pink → back — never changes with theme */
+          background: linear-gradient(
+            270deg,
+            #818cf8,
+            #c084fc,
+            #f472b6,
+            #e879f9,
+            #a78bfa,
+            #818cf8
+          );
+          background-size: 300% 300%;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          animation:
+            gradientShift 4s ease infinite,
+            shimmer       3s ease-in-out infinite;
+          display: inline-block;
+          /* Subtle text-shadow glow via drop-filter for modern browsers */
+          filter: drop-shadow(0 0 28px rgba(192, 132, 252, 0.55));
+          will-change: background-position, opacity;
+        }
+
+        /* Hover: speed up + brighten */
+        .hero-effortlessly:hover {
+          animation-duration: 1.5s, 1.2s;
+          filter: drop-shadow(0 0 40px rgba(244, 114, 182, 0.75));
+        }
+      `}</style>
+
+      {/* ── SVG Sky ── */}
       <svg
         viewBox="0 0 1440 900"
         preserveAspectRatio="xMidYMid slice"
@@ -60,20 +116,20 @@ const HeroScene = () => {
       >
         <defs>
           <linearGradient id="hs-sky" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={sky.c0} />
-            <stop offset="50%" stopColor={sky.c1} />
+            <stop offset="0%"   stopColor={sky.c0} />
+            <stop offset="50%"  stopColor={sky.c1} />
             <stop offset="100%" stopColor={sky.c2} />
           </linearGradient>
           <linearGradient id="hs-city" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={isDark ? '#12123a' : '#1e1b4b'} />
+            <stop offset="0%"   stopColor={isDark ? '#12123a' : '#1e1b4b'} />
             <stop offset="100%" stopColor={isDark ? '#050510' : '#0a0920'} />
           </linearGradient>
           <radialGradient id="hs-orb" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor={isDark ? 'rgba(196,181,253,0.4)' : 'rgba(253,230,138,0.55)'} />
+            <stop offset="0%"   stopColor={isDark ? 'rgba(196,181,253,0.4)' : 'rgba(253,230,138,0.55)'} />
             <stop offset="100%" stopColor="transparent" />
           </radialGradient>
           <radialGradient id="hs-horizon" cx="50%" cy="100%" r="55%">
-            <stop offset="0%" stopColor={isDark ? 'rgba(99,102,241,0.22)' : 'rgba(234,88,12,0.32)'} />
+            <stop offset="0%"   stopColor={isDark ? 'rgba(99,102,241,0.22)' : 'rgba(234,88,12,0.32)'} />
             <stop offset="100%" stopColor="transparent" />
           </radialGradient>
           <filter id="hs-glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -102,18 +158,18 @@ const HeroScene = () => {
         <circle cx="720" cy="200" r={isDark ? 38 : 50}
           fill={isDark ? '#c4b5fd' : '#fde68a'} opacity={isDark ? 0.9 : 0.95} filter="url(#hs-glow)" />
         {isDark && <>
-          <circle cx="710" cy="195" r="5" fill="rgba(0,0,0,0.12)" />
+          <circle cx="710" cy="195" r="5"   fill="rgba(0,0,0,0.12)" />
           <circle cx="731" cy="210" r="3.5" fill="rgba(0,0,0,0.1)" />
-          <circle cx="714" cy="215" r="4" fill="rgba(0,0,0,0.08)" />
+          <circle cx="714" cy="215" r="4"   fill="rgba(0,0,0,0.08)" />
         </>}
 
         {/* Clouds */}
         <g ref={cloud1Ref} style={{ willChange: 'transform' }}>
           <g opacity={isDark ? 0.15 : 0.8}>
             <ellipse cx="260" cy="290" rx="115" ry="38" fill={isDark ? '#4f46e5' : 'white'} />
-            <ellipse cx="228" cy="274" rx="70" ry="33" fill={isDark ? '#5b51e8' : 'white'} />
-            <ellipse cx="304" cy="272" rx="80" ry="36" fill={isDark ? '#6366f1' : 'white'} />
-            <ellipse cx="262" cy="258" rx="88" ry="38" fill={isDark ? '#6366f1' : 'white'} />
+            <ellipse cx="228" cy="274" rx="70"  ry="33" fill={isDark ? '#5b51e8' : 'white'} />
+            <ellipse cx="304" cy="272" rx="80"  ry="36" fill={isDark ? '#6366f1' : 'white'} />
+            <ellipse cx="262" cy="258" rx="88"  ry="38" fill={isDark ? '#6366f1' : 'white'} />
           </g>
           <g opacity={isDark ? 0.1 : 0.6}>
             <ellipse cx="960" cy="230" rx="96" ry="30" fill={isDark ? '#7c3aed' : 'white'} />
@@ -162,10 +218,10 @@ const HeroScene = () => {
           ].map(([x,y,w,h],i) => <rect key={i} x={x} y={y} width={w} height={h} />)}
           <rect x="680" y="598" width="56" height="312" />
           <rect x="691" y="586" width="34" height="14" />
-          <rect x="706" y="574" width="5" height="14" />
+          <rect x="706" y="574" width="5"  height="14" />
           <rect x="960" y="578" width="60" height="332" />
           <rect x="979" y="566" width="22" height="14" />
-          <rect x="989" y="554" width="4" height="14" />
+          <rect x="989" y="554" width="4"  height="14" />
         </g>
         <g fill={isDark ? '#fbbf24' : '#fef3c7'} opacity={isDark ? 0.7 : 0.9}>
           {Array.from({ length: 55 }, (_, i) => (
@@ -177,14 +233,14 @@ const HeroScene = () => {
           fill={isDark ? 'rgba(99,102,241,0.3)' : 'rgba(234,88,12,0.4)'} filter="url(#hs-soft)" />
       </svg>
 
-      {/* Bottom fade — blends hero into page background */}
+      {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{
         height: '28%',
         background: `linear-gradient(to bottom, transparent, hsl(var(--b1, 0 0% 100%)))`,
         zIndex: 2
       }} />
 
-      {/* Hero content */}
+      {/* ── Hero content ── */}
       <div
         className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6"
         style={{ zIndex: 3, paddingBottom: '10vh' }}
@@ -224,14 +280,13 @@ const HeroScene = () => {
           >
             Manage your team.
             <br />
-            <span style={{
-              background: isDark
-                ? 'linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%)'
-                : 'linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #f97316 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
+            {/*
+              ✅ FIXED: Single class-based animated gradient.
+              No isDark check — identical in light AND dark mode.
+              The .hero-effortlessly class in <style> handles the
+              animated gradient-shift + shimmer + glow filter.
+            */}
+            <span className="hero-effortlessly">
               Effortlessly.
             </span>
           </h1>
@@ -314,21 +369,6 @@ const HeroScene = () => {
           }} />
         </div>
       </motion.div>
-
-      <style>{`
-        @keyframes scrollBob {
-          0%, 100% { transform: translateY(0); opacity: 0.5; }
-          50% { transform: translateY(5px); opacity: 1; }
-        }
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-6px); }
-        }
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.85; }
-        }
-      `}</style>
     </section>
   )
 }
