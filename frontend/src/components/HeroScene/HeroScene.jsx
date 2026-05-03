@@ -43,12 +43,6 @@ const HeroScene = () => {
     return () => cancelAnimationFrame(rafId)
   }, [low])
 
-  // Reset transform when theme changes to prevent weird positioning
-  useEffect(() => {
-    if (cloud1Ref.current) cloud1Ref.current.style.transform = ''
-    if (cloud2Ref.current) cloud2Ref.current.style.transform = ''
-  }, [isDark]) // Add this effect to reset transforms on theme change
-
   const sky = isDark
     ? { c0: '#050510', c1: '#0d0d28', c2: '#06060f' }
     : { c0: '#5b21b6', c1: '#7c3aed', c2: '#c2410c' }
