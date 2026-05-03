@@ -7,11 +7,11 @@ const isLowEnd = () => {
   try { return navigator.hardwareConcurrency <= 2 } catch { return false }
 }
 
-const PARTICLES = Array.from({ length: 12 }, (_, i) => ({
-  id: i, x: 5 + (i * 8.3) % 90, y: 10 + (i * 7.1) % 65,
-  size: 1 + (i % 3), delay: (i * 0.6) % 4, duration: 3 + (i % 4)
+const PARTICLES = Array.from({ length: 10 }, (_, i) => ({
+  id: i, x: 5 + (i * 9.1) % 90, y: 10 + (i * 7.3) % 60,
+  size: 1 + (i % 3), delay: (i * 0.7) % 4, duration: 3 + (i % 4)
 }))
-const STARS = Array.from({ length: 45 }, (_, i) => ({
+const STARS = Array.from({ length: 40 }, (_, i) => ({
   id: i, x: (i * 2.3) % 100, y: (i * 1.7) % 58,
   size: 0.5 + (i % 3) * 0.5, delay: (i * 0.4) % 3
 }))
@@ -21,324 +21,315 @@ const HeroScene = () => {
   const { theme } = useThemeStore()
   const isDark = theme === 'dark'
   const low = isLowEnd()
-
-  const grad0 = useRef(null)
-  const grad1 = useRef(null)
-  const grad2 = useRef(null)
   const cloud1Ref = useRef(null)
   const cloud2Ref = useRef(null)
-  const cityRef = useRef(null)
-  const heroTextRef = useRef(null)
-  const ctaRef = useRef(null)
-  const particlesRef = useRef(null)
-  const containerRef = useRef(null)
 
+  // Subtle cloud parallax only — no layout height manipulation
   useEffect(() => {
+    if (low) return
     let rafId = null
-    let lastScroll = -1
-
-    const animate = () => {
-      const scrollTop = window.scrollY
-      if (scrollTop === lastScroll) { rafId = requestAnimationFrame(animate); return }
-      lastScroll = scrollTop
-
-      // Use container height instead of full doc for scroll progress
-      const containerH = containerRef.current ? containerRef.current.offsetHeight - window.innerHeight : window.innerHeight
-      const prog = containerH > 0 ? Math.min(scrollTop / containerH, 1) : 0
-
-      const p1 = Math.min(prog / 0.4, 1)
-      const p2 = Math.min(Math.max((prog - 0.3) / 0.35, 0), 1)
-      const p3 = Math.min(Math.max((prog - 0.65) / 0.35, 0), 1)
-
-      if (grad0.current && grad1.current && grad2.current) {
-        if (isDark) {
-          grad0.current.setAttribute('stop-color', `hsl(240,50%,${5 + p1 * 12}%)`)
-          grad1.current.setAttribute('stop-color', `hsl(250,60%,${8 + p1 * 14}%)`)
-          grad2.current.setAttribute('stop-color', `hsl(280,40%,${4 + p1 * 10}%)`)
-        } else {
-          grad0.current.setAttribute('stop-color', `hsl(${250 + p1 * 30},70%,${45 + p1 * 25}%)`)
-          grad1.current.setAttribute('stop-color', `hsl(${280 + p1 * 20},65%,${50 + p1 * 20}%)`)
-          grad2.current.setAttribute('stop-color', `hsl(${25 - p1 * 15},85%,${55 + p1 * 20}%)`)
-        }
+    let last = -1
+    const tick = () => {
+      const s = window.scrollY
+      if (s !== last) {
+        last = s
+        const p = Math.min(s / window.innerHeight, 1)
+        if (cloud1Ref.current) cloud1Ref.current.style.transform = `translateX(${p * -28}px) translateY(${p * -8}px)`
+        if (cloud2Ref.current) cloud2Ref.current.style.transform = `translateX(${p * 22}px) translateY(${p * -6}px)`
       }
-
-      if (!low) {
-        if (cloud1Ref.current) cloud1Ref.current.style.transform = `translateX(${p1 * -40}px)`
-        if (cloud2Ref.current) cloud2Ref.current.style.transform = `translateX(${p1 * 30}px)`
-      }
-
-      if (cityRef.current) {
-        cityRef.current.style.opacity = p2
-        cityRef.current.style.transform = `translateY(${(1 - p2) * 25}px)`
-      }
-
-      if (heroTextRef.current) {
-        heroTextRef.current.style.opacity = Math.max(1 - p2 * 2.5, 0)
-        heroTextRef.current.style.transform = `translateY(${-p2 * 40}px)`
-      }
-
-      if (ctaRef.current) {
-        const show = Math.min(Math.max((prog - 0.2) / 0.2, 0), 1)
-        ctaRef.current.style.opacity = show
-        ctaRef.current.style.transform = `translateY(${(1 - show) * 20}px)`
-      }
-
-      if (particlesRef.current) {
-        particlesRef.current.style.opacity = Math.max(1 - p3 * 3, 0)
-      }
-
-      rafId = requestAnimationFrame(animate)
+      rafId = requestAnimationFrame(tick)
     }
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
+  }, [low])
 
-    rafId = requestAnimationFrame(animate)
-    return () => { if (rafId) cancelAnimationFrame(rafId) }
-  }, [isDark, low])
-
-  const skyC = isDark
-    ? { c0: '#050510', c1: '#0a0a20', c2: '#06060f' }
-    : { c0: '#6d28d9', c1: '#9333ea', c2: '#ea580c' }
+  const sky = isDark
+    ? { c0: '#050510', c1: '#0d0d28', c2: '#06060f' }
+    : { c0: '#5b21b6', c1: '#7c3aed', c2: '#c2410c' }
 
   return (
-    // ✅ Reduced from 220vh → 150vh to eliminate blank space
-    <div ref={containerRef} className="relative" style={{ height: '150vh' }}>
-      <div className="sticky top-0 h-screen overflow-hidden" style={{ contain: 'paint layout' }}>
+    // Exactly 100vh — zero extra scroll height = zero blank space
+    <section className="relative w-full overflow-hidden" style={{ height: '100vh', minHeight: 560 }}>
 
-        <svg
-          viewBox="0 0 1440 900"
-          preserveAspectRatio="xMidYMid slice"
-          className="absolute inset-0 w-full h-full"
-          aria-hidden="true"
-          style={{ display: 'block' }}
-        >
-          <defs>
-            <linearGradient id="tf-sky" x1="0" y1="0" x2="0" y2="1">
-              <stop ref={grad0} offset="0%" stopColor={skyC.c0} />
-              <stop ref={grad1} offset="50%" stopColor={skyC.c1} />
-              <stop ref={grad2} offset="100%" stopColor={skyC.c2} />
-            </linearGradient>
-            <linearGradient id="tf-city" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={isDark ? '#12123a' : '#1e1b4b'} />
-              <stop offset="100%" stopColor={isDark ? '#050510' : '#0a0920'} />
-            </linearGradient>
-            <radialGradient id="tf-orb" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor={isDark ? 'rgba(196,181,253,0.35)' : 'rgba(253,230,138,0.5)'} />
-              <stop offset="100%" stopColor="transparent" />
-            </radialGradient>
-            <radialGradient id="tf-horizon" cx="50%" cy="100%" r="55%">
-              <stop offset="0%" stopColor={isDark ? 'rgba(99,102,241,0.18)' : 'rgba(234,88,12,0.28)'} />
-              <stop offset="100%" stopColor="transparent" />
-            </radialGradient>
-            <filter id="tf-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="4" result="blur" />
-              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-            <filter id="tf-soft" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur stdDeviation="10" result="blur" />
-              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-          </defs>
+      {/* SVG Sky */}
+      <svg
+        viewBox="0 0 1440 900"
+        preserveAspectRatio="xMidYMid slice"
+        className="absolute inset-0 w-full h-full"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="hs-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={sky.c0} />
+            <stop offset="50%" stopColor={sky.c1} />
+            <stop offset="100%" stopColor={sky.c2} />
+          </linearGradient>
+          <linearGradient id="hs-city" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={isDark ? '#12123a' : '#1e1b4b'} />
+            <stop offset="100%" stopColor={isDark ? '#050510' : '#0a0920'} />
+          </linearGradient>
+          <radialGradient id="hs-orb" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={isDark ? 'rgba(196,181,253,0.4)' : 'rgba(253,230,138,0.55)'} />
+            <stop offset="100%" stopColor="transparent" />
+          </radialGradient>
+          <radialGradient id="hs-horizon" cx="50%" cy="100%" r="55%">
+            <stop offset="0%" stopColor={isDark ? 'rgba(99,102,241,0.22)' : 'rgba(234,88,12,0.32)'} />
+            <stop offset="100%" stopColor="transparent" />
+          </radialGradient>
+          <filter id="hs-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="b" />
+            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+          <filter id="hs-soft" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="10" result="b" />
+            <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
 
-          <rect width="1440" height="900" fill="url(#tf-sky)" />
-          <rect width="1440" height="900" fill="url(#tf-horizon)" />
+        <rect width="1440" height="900" fill="url(#hs-sky)" />
+        <rect width="1440" height="900" fill="url(#hs-horizon)" />
 
-          {isDark && !low && STARS.map(s => (
-            <circle key={s.id} cx={`${s.x}%`} cy={`${s.y}%`} r={s.size}
-              fill="white" opacity={0.5 + (s.id % 5) * 0.1}
-              style={{ animation: `twinkle ${2 + s.delay}s ease-in-out infinite`, animationDelay: `${s.delay}s` }}
-            />
-          ))}
-
-          <g filter="url(#tf-soft)">
-            <circle cx="720" cy="185" r="90" fill="url(#tf-orb)" />
-          </g>
-          <circle cx="720" cy="185" r={isDark ? 36 : 46}
-            fill={isDark ? '#c4b5fd' : '#fde68a'}
-            opacity={isDark ? 0.88 : 0.92}
-            filter="url(#tf-glow)"
+        {/* Stars */}
+        {isDark && !low && STARS.map(s => (
+          <circle key={s.id} cx={`${s.x}%`} cy={`${s.y}%`} r={s.size}
+            fill="white" opacity={0.4 + (s.id % 5) * 0.1}
+            style={{ animation: `twinkle ${2 + s.delay}s ease-in-out infinite`, animationDelay: `${s.delay}s` }}
           />
-          {isDark && <>
-            <circle cx="710" cy="180" r="5" fill="rgba(0,0,0,0.12)" />
-            <circle cx="730" cy="195" r="3.5" fill="rgba(0,0,0,0.1)" />
-            <circle cx="714" cy="200" r="4" fill="rgba(0,0,0,0.08)" />
-          </>}
+        ))}
 
-          <g ref={cloud1Ref} style={{ willChange: 'transform' }}>
-            <g opacity={isDark ? 0.14 : 0.75}>
-              <ellipse cx="280" cy="270" rx="110" ry="36" fill={isDark ? '#4f46e5' : 'white'} />
-              <ellipse cx="248" cy="256" rx="66" ry="32" fill={isDark ? '#5b51e8' : 'white'} />
-              <ellipse cx="320" cy="254" rx="78" ry="35" fill={isDark ? '#6366f1' : 'white'} />
-              <ellipse cx="280" cy="242" rx="85" ry="37" fill={isDark ? '#6366f1' : 'white'} />
-            </g>
-            <g opacity={isDark ? 0.09 : 0.55}>
-              <ellipse cx="950" cy="210" rx="92" ry="28" fill={isDark ? '#7c3aed' : 'white'} />
-              <ellipse cx="920" cy="199" rx="58" ry="27" fill={isDark ? '#7c3aed' : 'white'} />
-              <ellipse cx="980" cy="197" rx="68" ry="29" fill={isDark ? '#8b5cf6' : 'white'} />
-              <ellipse cx="950" cy="187" rx="75" ry="31" fill={isDark ? '#8b5cf6' : 'white'} />
-            </g>
+        {/* Orb */}
+        <g filter="url(#hs-soft)"><circle cx="720" cy="200" r="100" fill="url(#hs-orb)" /></g>
+        <circle cx="720" cy="200" r={isDark ? 38 : 50}
+          fill={isDark ? '#c4b5fd' : '#fde68a'} opacity={isDark ? 0.9 : 0.95} filter="url(#hs-glow)" />
+        {isDark && <>
+          <circle cx="710" cy="195" r="5" fill="rgba(0,0,0,0.12)" />
+          <circle cx="731" cy="210" r="3.5" fill="rgba(0,0,0,0.1)" />
+          <circle cx="714" cy="215" r="4" fill="rgba(0,0,0,0.08)" />
+        </>}
+
+        {/* Clouds */}
+        <g ref={cloud1Ref} style={{ willChange: 'transform' }}>
+          <g opacity={isDark ? 0.15 : 0.8}>
+            <ellipse cx="260" cy="290" rx="115" ry="38" fill={isDark ? '#4f46e5' : 'white'} />
+            <ellipse cx="228" cy="274" rx="70" ry="33" fill={isDark ? '#5b51e8' : 'white'} />
+            <ellipse cx="304" cy="272" rx="80" ry="36" fill={isDark ? '#6366f1' : 'white'} />
+            <ellipse cx="262" cy="258" rx="88" ry="38" fill={isDark ? '#6366f1' : 'white'} />
           </g>
-
-          <g ref={cloud2Ref} style={{ willChange: 'transform' }}>
-            <g opacity={isDark ? 0.06 : 0.38}>
-              <ellipse cx="1120" cy="330" rx="85" ry="24" fill={isDark ? '#312e81' : 'white'} />
-              <ellipse cx="1095" cy="320" rx="52" ry="22" fill={isDark ? '#312e81' : 'white'} />
-              <ellipse cx="1148" cy="318" rx="62" ry="24" fill={isDark ? '#3730a3' : 'white'} />
-            </g>
-            <g opacity={isDark ? 0.07 : 0.3}>
-              <ellipse cx="140" cy="355" rx="75" ry="22" fill={isDark ? '#1e1b4b' : 'white'} />
-              <ellipse cx="118" cy="345" rx="47" ry="20" fill={isDark ? '#1e1b4b' : 'white'} />
-              <ellipse cx="168" cy="344" rx="57" ry="22" fill={isDark ? '#1e1b4b' : 'white'} />
-            </g>
+          <g opacity={isDark ? 0.1 : 0.6}>
+            <ellipse cx="960" cy="230" rx="96" ry="30" fill={isDark ? '#7c3aed' : 'white'} />
+            <ellipse cx="928" cy="218" rx="62" ry="28" fill={isDark ? '#7c3aed' : 'white'} />
+            <ellipse cx="994" cy="216" rx="72" ry="30" fill={isDark ? '#8b5cf6' : 'white'} />
+            <ellipse cx="960" cy="204" rx="78" ry="32" fill={isDark ? '#8b5cf6' : 'white'} />
           </g>
-
-          <g ref={particlesRef}>
-            {PARTICLES.map(p => (
-              <circle key={p.id} cx={`${p.x}%`} cy={`${p.y}%`} r={p.size}
-                fill={isDark ? '#818cf8' : '#fbbf24'}
-                opacity={0.35 + (p.id % 4) * 0.1}
-                filter="url(#tf-glow)"
-                style={{ animation: `float ${p.duration}s ease-in-out infinite`, animationDelay: `${p.delay}s` }}
-              />
-            ))}
+        </g>
+        <g ref={cloud2Ref} style={{ willChange: 'transform' }}>
+          <g opacity={isDark ? 0.07 : 0.4}>
+            <ellipse cx="1130" cy="350" rx="88" ry="26" fill={isDark ? '#312e81' : 'white'} />
+            <ellipse cx="1104" cy="338" rx="55" ry="23" fill={isDark ? '#312e81' : 'white'} />
+            <ellipse cx="1158" cy="336" rx="65" ry="25" fill={isDark ? '#3730a3' : 'white'} />
           </g>
-
-          <g ref={cityRef} style={{ opacity: 0, willChange: 'transform, opacity' }}>
-            <rect x="0" y="810" width="1440" height="90" fill="url(#tf-city)" />
-            <g fill={isDark ? '#1a1a3e' : '#1e1b4b'} opacity="0.55">
-              {[
-                [0,700,58,120],[55,718,40,102],[98,676,52,144],[148,728,36,92],
-                [196,658,47,162],[238,698,32,122],[318,648,57,172],[372,698,42,122],
-                [416,678,52,142],[595,638,67,182],[660,678,47,142],[700,648,62,172],
-                [800,658,57,162],[900,628,72,192],[970,668,52,152],[1098,648,67,172],
-                [1200,678,52,142],[1278,658,62,162],[1380,698,60,122]
-              ].map(([x, y, w, h], i) => <rect key={i} x={x} y={y} width={w} height={h} />)}
-            </g>
-            <g fill={isDark ? '#0c0c22' : '#0d0b1e'}>
-              {[
-                [0,748,82,152],[74,768,52,132],[118,738,72,162],[238,758,62,142],
-                [358,728,92,172],[498,718,102,182],[648,708,82,192],
-                [800,738,72,162],[918,698,92,202],[1078,728,82,172],
-                [1198,718,92,182],[1318,738,122,162]
-              ].map(([x, y, w, h], i) => <rect key={i} x={x} y={y} width={w} height={h} />)}
-              <rect x="678" y="595" width="54" height="305" />
-              <rect x="689" y="583" width="32" height="14" />
-              <rect x="703" y="572" width="4" height="14" />
-              <rect x="958" y="575" width="58" height="325" />
-              <rect x="977" y="563" width="20" height="14" />
-              <rect x="986" y="552" width="3" height="14" />
-            </g>
-            <g fill={isDark ? '#fbbf24' : '#fef3c7'} opacity={isDark ? 0.65 : 0.85}>
-              {Array.from({ length: 55 }, (_, i) => (
-                <rect key={i}
-                  x={40 + (i * 26) % 1360} y={630 + (i * 18) % 165}
-                  width="3" height="4"
-                  opacity={(i * 7 + 3) % 10 > 3 ? 1 : 0}
-                />
-              ))}
-            </g>
-            <ellipse cx="720" cy="815" rx="420" ry="45"
-              fill={isDark ? 'rgba(99,102,241,0.32)' : 'rgba(234,88,12,0.42)'}
-              filter="url(#tf-soft)"
-            />
+          <g opacity={isDark ? 0.08 : 0.32}>
+            <ellipse cx="130" cy="370" rx="78" ry="23" fill={isDark ? '#1e1b4b' : 'white'} />
+            <ellipse cx="108" cy="358" rx="50" ry="21" fill={isDark ? '#1e1b4b' : 'white'} />
+            <ellipse cx="160" cy="356" rx="60" ry="23" fill={isDark ? '#1e1b4b' : 'white'} />
           </g>
-        </svg>
+        </g>
 
-        {/* Hero Text */}
-        <div
-          ref={heroTextRef}
-          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6"
-          style={{ willChange: 'transform, opacity' }}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 32 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-3xl"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-8 border"
-              style={{
-                background: 'rgba(99,102,241,0.15)',
-                borderColor: 'rgba(99,102,241,0.35)',
-                color: '#a5b4fc',
-                backdropFilter: 'blur(12px)'
-              }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Team Task Manager · Now Live
-            </div>
+        {/* Particles */}
+        {!low && PARTICLES.map(p => (
+          <circle key={p.id} cx={`${p.x}%`} cy={`${p.y}%`} r={p.size}
+            fill={isDark ? '#818cf8' : '#fbbf24'} opacity={0.3 + (p.id % 4) * 0.1}
+            filter="url(#hs-glow)"
+            style={{ animation: `float ${p.duration}s ease-in-out infinite`, animationDelay: `${p.delay}s` }}
+          />
+        ))}
 
-            <h1 className="font-display font-bold leading-none tracking-tight mb-6"
-              style={{ fontSize: 'clamp(2.8rem, 8vw, 6rem)', color: 'white', textShadow: '0 4px 40px rgba(0,0,0,0.4)' }}>
-              Manage your team.
-              <br />
-              <span style={{
-                background: isDark
-                  ? 'linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%)'
-                  : 'linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #f97316 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>
-                Effortlessly.
-              </span>
-            </h1>
+        {/* City */}
+        <rect x="0" y="820" width="1440" height="80" fill="url(#hs-city)" />
+        <g fill={isDark ? '#1a1a3e' : '#1e1b4b'} opacity="0.5">
+          {[[0,710,60,120],[58,726,42,104],[102,682,54,148],[154,734,38,96],
+            [198,662,48,168],[244,702,34,128],[320,652,58,178],[376,702,44,128],
+            [422,680,54,148],[598,640,68,190],[664,680,48,150],[706,650,64,178],
+            [804,660,58,168],[904,630,74,198],[974,670,54,160],[1102,650,68,178],
+            [1204,680,54,148],[1282,660,64,168],[1382,700,58,128]
+          ].map(([x,y,w,h],i) => <rect key={i} x={x} y={y} width={w} height={h} />)}
+        </g>
+        <g fill={isDark ? '#0c0c22' : '#0d0b1e'}>
+          {[[0,752,84,158],[76,772,54,138],[120,742,74,168],[240,762,64,148],
+            [360,732,94,178],[500,722,104,188],[650,712,84,198],
+            [804,742,74,168],[920,702,94,208],[1080,732,84,178],
+            [1200,722,94,188],[1320,742,120,168]
+          ].map(([x,y,w,h],i) => <rect key={i} x={x} y={y} width={w} height={h} />)}
+          <rect x="680" y="598" width="56" height="312" />
+          <rect x="691" y="586" width="34" height="14" />
+          <rect x="706" y="574" width="5" height="14" />
+          <rect x="960" y="578" width="60" height="332" />
+          <rect x="979" y="566" width="22" height="14" />
+          <rect x="989" y="554" width="4" height="14" />
+        </g>
+        <g fill={isDark ? '#fbbf24' : '#fef3c7'} opacity={isDark ? 0.7 : 0.9}>
+          {Array.from({ length: 55 }, (_, i) => (
+            <rect key={i} x={40 + (i * 26) % 1360} y={634 + (i * 18) % 168}
+              width="3" height="4" opacity={(i * 7 + 3) % 10 > 3 ? 1 : 0} />
+          ))}
+        </g>
+        <ellipse cx="720" cy="820" rx="440" ry="50"
+          fill={isDark ? 'rgba(99,102,241,0.3)' : 'rgba(234,88,12,0.4)'} filter="url(#hs-soft)" />
+      </svg>
 
-            <p style={{ color: 'rgba(226,232,240,0.8)', fontSize: '1.15rem', lineHeight: 1.7, maxWidth: '32rem', margin: '0 auto' }}>
-              Create projects, assign tasks, track progress — all in one beautiful workspace built for modern teams.
-            </p>
-          </motion.div>
-        </div>
+      {/* Bottom fade — blends hero into page background */}
+      <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{
+        height: '28%',
+        background: `linear-gradient(to bottom, transparent, hsl(var(--b1, 0 0% 100%)))`,
+        zIndex: 2
+      }} />
 
-        {/* CTA Buttons */}
-        <div
-          ref={ctaRef}
-          className="absolute inset-x-0 flex flex-col sm:flex-row items-center justify-center gap-4 px-6"
-          style={{ bottom: '22%', opacity: 0, willChange: 'transform, opacity' }}
-        >
-          <motion.button
-            onClick={() => navigate('/register')}
-            className="px-8 py-3.5 rounded-xl font-bold text-white text-sm font-display tracking-wide"
-            style={{
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-              boxShadow: '0 8px 30px rgba(99,102,241,0.5)',
-              backdropFilter: 'blur(8px)'
-            }}
-            whileHover={{ scale: 1.06, boxShadow: '0 12px 40px rgba(99,102,241,0.6)' }}
-            whileTap={{ scale: 0.97 }}
-          >
-            Get Started Free →
-          </motion.button>
-
-          <motion.button
-            onClick={() => navigate('/login')}
-            className="px-8 py-3.5 rounded-xl font-semibold text-sm"
-            style={{
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.22)',
-              color: 'white',
-              backdropFilter: 'blur(10px)'
-            }}
-            whileHover={{ scale: 1.04, background: 'rgba(255,255,255,0.2)' }}
-            whileTap={{ scale: 0.97 }}
-          >
-            Sign In
-          </motion.button>
-        </div>
-
-        {/* Scroll hint */}
+      {/* Hero content */}
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6"
+        style={{ zIndex: 3, paddingBottom: '10vh' }}
+      >
         <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, duration: 0.8 }}
-          style={{ color: 'rgba(148,163,184,0.55)' }}
+          initial={{ opacity: 0, y: 32 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-3xl"
         >
-          <span style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Scroll to explore</span>
-          <div style={{ width: 20, height: 32, borderRadius: 10, border: '1.5px solid currentColor', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '4px 0' }}>
-            <div style={{ width: 3, height: 8, borderRadius: 2, background: 'currentColor', animation: 'float 1.4s ease-in-out infinite' }} />
-          </div>
-        </motion.div>
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.15, duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-6 border"
+            style={{
+              background: 'rgba(99,102,241,0.18)',
+              borderColor: 'rgba(99,102,241,0.4)',
+              color: '#a5b4fc',
+              backdropFilter: 'blur(12px)'
+            }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+            Team Task Manager · Now Live
+          </motion.div>
 
+          {/* Heading */}
+          <h1
+            className="font-display font-bold tracking-tight mb-5"
+            style={{
+              fontSize: 'clamp(2.2rem, 6.5vw, 5.5rem)',
+              lineHeight: 1.06,
+              color: 'white',
+              textShadow: '0 4px 40px rgba(0,0,0,0.5)'
+            }}
+          >
+            Manage your team.
+            <br />
+            <span style={{
+              background: isDark
+                ? 'linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%)'
+                : 'linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #f97316 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>
+              Effortlessly.
+            </span>
+          </h1>
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35, duration: 0.7 }}
+            style={{
+              color: 'rgba(226,232,240,0.75)',
+              fontSize: 'clamp(0.9rem, 2.2vw, 1.1rem)',
+              lineHeight: 1.7,
+              maxWidth: '30rem',
+              margin: '0 auto'
+            }}
+          >
+            Create projects, assign tasks, track progress — all in one beautiful workspace built for modern teams.
+          </motion.p>
+
+          {/* Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8"
+          >
+            <motion.button
+              onClick={() => navigate('/register')}
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-white text-sm font-display tracking-wide"
+              style={{
+                background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                boxShadow: '0 8px 30px rgba(99,102,241,0.5)',
+                backdropFilter: 'blur(8px)',
+              }}
+              whileHover={{ scale: 1.05, boxShadow: '0 12px 40px rgba(99,102,241,0.65)' }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Get Started Free →
+            </motion.button>
+            <motion.button
+              onClick={() => navigate('/login')}
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-semibold text-sm"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: 'white',
+                backdropFilter: 'blur(10px)',
+              }}
+              whileHover={{ scale: 1.04, background: 'rgba(255,255,255,0.18)' }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Sign In
+            </motion.button>
+          </motion.div>
+        </motion.div>
       </div>
-    </div>
+
+      {/* Scroll hint */}
+      <motion.div
+        className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
+        style={{ bottom: '4%', zIndex: 4 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.3, duration: 0.8 }}
+      >
+        <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(148,163,184,0.45)' }}>
+          Scroll
+        </span>
+        <div style={{
+          width: 20, height: 32, borderRadius: 10,
+          border: '1.5px solid rgba(148,163,184,0.3)',
+          display: 'flex', alignItems: 'flex-start',
+          justifyContent: 'center', padding: '4px 0'
+        }}>
+          <div style={{
+            width: 3, height: 8, borderRadius: 2,
+            background: 'rgba(148,163,184,0.45)',
+            animation: 'scrollBob 1.5s ease-in-out infinite'
+          }} />
+        </div>
+      </motion.div>
+
+      <style>{`
+        @keyframes scrollBob {
+          0%, 100% { transform: translateY(0); opacity: 0.5; }
+          50% { transform: translateY(5px); opacity: 1; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.85; }
+        }
+      `}</style>
+    </section>
   )
 }
 
