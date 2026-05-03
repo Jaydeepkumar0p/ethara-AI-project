@@ -89,6 +89,61 @@ const techStack = [
   'JWT Auth',
 ]
 
+/* ─────────────────────────────────────────────────────────
+   Animated gradient styles — defined once, used everywhere.
+   Purple → violet → pink — NEVER changes based on theme.
+───────────────────────────────────────────────────────── */
+const ANIMATED_GRADIENT_STYLES = `
+  @keyframes gradientShift {
+    0%   { background-position: 0%   50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0%   50%; }
+  }
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.88; }
+    50%       { opacity: 1;    }
+  }
+
+  .animated-gradient-text {
+    background: linear-gradient(
+      270deg,
+      #818cf8,
+      #c084fc,
+      #f472b6,
+      #e879f9,
+      #a78bfa,
+      #818cf8
+    );
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation:
+      gradientShift 4s ease infinite,
+      shimmer       3s ease-in-out infinite;
+    display: inline-block;
+    will-change: background-position, opacity;
+  }
+
+  /* Stats gradient — same ramp, slightly slower */
+  .stats-gradient-text {
+    background: linear-gradient(
+      270deg,
+      #818cf8,
+      #c084fc,
+      #f472b6,
+      #a78bfa,
+      #818cf8
+    );
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 6s ease infinite;
+    display: inline-block;
+  }
+`
+
 // Fade-up animation preset
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -103,6 +158,9 @@ const HomePage = () => {
 
   return (
     <div className="overflow-x-hidden">
+
+      {/* ── Global animated gradient keyframes ── */}
+      <style>{ANIMATED_GRADIENT_STYLES}</style>
 
       {/* ── Hero ── */}
       <Suspense
@@ -125,9 +183,8 @@ const HomePage = () => {
         <HeroScene />
       </Suspense>
 
-      {/* ── Stats bar — sits flush under hero ── */}
+      {/* ── Stats bar ── */}
       <section className="relative border-b border-base-300" style={{ background: 'var(--b2, hsl(var(--b2)))' }}>
-        {/* Top accent line */}
         <div
           className="absolute top-0 left-0 right-0 h-px"
           style={{ background: isDark ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)' }}
@@ -136,17 +193,13 @@ const HomePage = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8">
             {stats.map((s, i) => (
               <motion.div key={s.label} {...fadeUp(i * 0.07)} className="text-center">
+                {/*
+                  ✅ FIXED: stats values use .stats-gradient-text class
+                  instead of an isDark inline style.
+                */}
                 <div
-                  className="font-display font-bold mb-1"
-                  style={{
-                    fontSize: 'clamp(1.5rem, 4vw, 2rem)',
-                    background: isDark
-                      ? 'linear-gradient(135deg, #818cf8, #c084fc)'
-                      : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                  }}
+                  className="stats-gradient-text font-display font-bold mb-1"
+                  style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)' }}
                 >
                   {s.value}
                 </div>
@@ -159,7 +212,6 @@ const HomePage = () => {
 
       {/* ── Features ── */}
       <section className="relative py-20 sm:py-28 px-4 sm:px-6">
-        {/* Background glow */}
         <div
           className="absolute inset-0 -z-10 pointer-events-none"
           style={{
@@ -169,7 +221,6 @@ const HomePage = () => {
           }}
         />
         <div className="max-w-6xl mx-auto">
-          {/* Section header */}
           <motion.div {...fadeUp()} className="text-center mb-14 sm:mb-16">
             <span
               className="inline-block text-xs font-semibold tracking-widest uppercase mb-4 px-3 py-1 rounded-full border"
@@ -189,7 +240,6 @@ const HomePage = () => {
             </p>
           </motion.div>
 
-          {/* Feature cards */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {features.map((f, i) => (
               <motion.div
@@ -251,7 +301,6 @@ const HomePage = () => {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6 sm:gap-10 relative">
-            {/* Connector line — desktop only */}
             <div
               className="hidden md:block absolute top-8 left-[calc(16.67%+1rem)] right-[calc(16.67%+1rem)] h-px"
               style={{
@@ -262,7 +311,6 @@ const HomePage = () => {
             />
             {steps.map((item, i) => (
               <motion.div key={item.step} {...fadeUp(i * 0.12)} className="relative text-center md:text-left">
-                {/* Step number circle */}
                 <div className="flex items-center justify-center md:justify-start mb-5">
                   <div
                     className="w-14 h-14 rounded-full flex items-center justify-center font-display font-bold text-sm relative z-10"
@@ -312,7 +360,6 @@ const HomePage = () => {
 
       {/* ── CTA ── */}
       <section className="relative py-24 sm:py-32 px-4 sm:px-6 text-center overflow-hidden">
-        {/* Background glow */}
         <div
           className="absolute inset-0 -z-10 pointer-events-none"
           style={{
@@ -321,7 +368,6 @@ const HomePage = () => {
               : 'radial-gradient(ellipse at 50% 60%, rgba(99,102,241,0.08) 0%, transparent 65%)',
           }}
         />
-        {/* Decorative blobs */}
         <div
           className="absolute -top-24 -left-24 w-64 h-64 rounded-full pointer-events-none -z-10"
           style={{
@@ -344,7 +390,6 @@ const HomePage = () => {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-2xl mx-auto"
         >
-          {/* Icon */}
           <div
             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 text-3xl"
             style={{
@@ -391,7 +436,6 @@ const HomePage = () => {
             </Link>
           </div>
 
-          {/* Trust note */}
           <p className="mt-6 text-xs text-base-content/30">
             No credit card · Free for teams up to 5 · Cancel anytime
           </p>
@@ -401,7 +445,6 @@ const HomePage = () => {
       {/* ── Footer ── */}
       <footer className="border-t border-base-300 py-8 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Logo */}
           <div className="flex items-center gap-2">
             <div
               className="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold text-white"
@@ -411,13 +454,9 @@ const HomePage = () => {
             </div>
             <span className="font-display font-bold text-sm">TaskFlow</span>
           </div>
-
-          {/* Credit */}
           <p className="text-xs text-base-content/30 text-center">
             Built with ❤️ using MERN Stack · Full-Stack Assignment
           </p>
-
-          {/* Links */}
           <div className="flex gap-5 text-xs text-base-content/35">
             {['Privacy', 'Terms', 'Contact'].map(l => (
               <span key={l} className="cursor-pointer hover:text-base-content/70 transition-colors">
