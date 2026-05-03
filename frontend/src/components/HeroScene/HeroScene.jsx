@@ -19,12 +19,12 @@ const STARS = Array.from({ length: 40 }, (_, i) => ({
 const HeroScene = () => {
   const navigate = useNavigate()
   const { theme } = useThemeStore()
-  const isDark = theme === 'dark'
+  // FIX: Check for 'taskflow' (dark) instead of 'dark'
+  const isDark = theme === 'taskflow'  // Changed from 'dark' to 'taskflow'
   const low = isLowEnd()
   const cloud1Ref = useRef(null)
   const cloud2Ref = useRef(null)
 
-  // Subtle cloud parallax only — no layout height manipulation
   useEffect(() => {
     if (low) return
     let rafId = null
@@ -45,12 +45,11 @@ const HeroScene = () => {
 
   const sky = isDark
     ? { c0: '#050510', c1: '#0d0d28', c2: '#06060f' }
-    : { c0: '#6366f1', c1: '#8b5cf6', c2: '#f59e0b' }  // Fixed: lighter sky for light mode
+    : { c0: '#6366f1', c1: '#8b5cf6', c2: '#f59e0b' }
 
   return (
     <section className="relative w-full overflow-hidden" style={{ height: '100vh', minHeight: 560 }}>
 
-      {/* SVG Sky */}
       <svg
         viewBox="0 0 1440 900"
         preserveAspectRatio="xMidYMid slice"
@@ -88,7 +87,6 @@ const HeroScene = () => {
         <rect width="1440" height="900" fill="url(#hs-sky)" />
         <rect width="1440" height="900" fill="url(#hs-horizon)" />
 
-        {/* Stars - only show in dark mode */}
         {isDark && !low && STARS.map(s => (
           <circle key={s.id} cx={`${s.x}%`} cy={`${s.y}%`} r={s.size}
             fill="white" opacity={0.4 + (s.id % 5) * 0.1}
@@ -96,7 +94,6 @@ const HeroScene = () => {
           />
         ))}
 
-        {/* Orb */}
         <g filter="url(#hs-soft)"><circle cx="720" cy="200" r="100" fill="url(#hs-orb)" /></g>
         <circle cx="720" cy="200" r={isDark ? 38 : 45}
           fill={isDark ? '#c4b5fd' : '#fde68a'} opacity={isDark ? 0.9 : 0.95} filter="url(#hs-glow)" />
@@ -106,7 +103,6 @@ const HeroScene = () => {
           <circle cx="714" cy="215" r="4" fill="rgba(0,0,0,0.08)" />
         </>}
 
-        {/* Clouds - adjust opacity for light mode */}
         <g ref={cloud1Ref} style={{ willChange: 'transform' }}>
           <g opacity={isDark ? 0.15 : 0.4}>
             <ellipse cx="260" cy="290" rx="115" ry="38" fill={isDark ? '#4f46e5' : 'white'} />
@@ -134,7 +130,6 @@ const HeroScene = () => {
           </g>
         </g>
 
-        {/* Particles */}
         {!low && PARTICLES.map(p => (
           <circle key={p.id} cx={`${p.x}%`} cy={`${p.y}%`} r={p.size}
             fill={isDark ? '#818cf8' : '#fbbf24'} opacity={0.3 + (p.id % 4) * 0.1}
@@ -143,7 +138,6 @@ const HeroScene = () => {
           />
         ))}
 
-        {/* City - lighter colors for light mode */}
         <rect x="0" y="820" width="1440" height="80" fill="url(#hs-city)" />
         <g fill={isDark ? '#1a1a3e' : '#d8b4fe'} opacity={isDark ? 0.5 : 0.4}>
           {[[0,710,60,120],[58,726,42,104],[102,682,54,148],[154,734,38,96],
@@ -176,14 +170,14 @@ const HeroScene = () => {
           fill={isDark ? 'rgba(99,102,241,0.3)' : 'rgba(234,88,12,0.4)'} filter="url(#hs-soft)" />
       </svg>
 
-      {/* Bottom fade — blends hero into page background - FIXED */}
+      {/* Bottom fade - FIXED to use theme-aware colors */}
       <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{
         height: '28%',
-        background: `linear-gradient(to bottom, transparent, ${isDark ? 'hsl(var(--b1))' : 'hsl(var(--b1))'})`,
+        background: `linear-gradient(to bottom, transparent, ${isDark ? '#0d0d28' : '#ffffff'})`,
         zIndex: 2
       }} />
 
-      {/* Hero content - FIXED text colors for light mode */}
+      {/* Hero content */}
       <div
         className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-6"
         style={{ zIndex: 3, paddingBottom: '10vh' }}
@@ -194,7 +188,6 @@ const HeroScene = () => {
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-3xl"
         >
-          {/* Badge - FIXED for light mode */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -211,7 +204,6 @@ const HeroScene = () => {
             Team Task Manager · Now Live
           </motion.div>
 
-          {/* Heading - FIXED text color for light mode */}
           <h1
             className="font-display font-bold tracking-tight mb-5"
             style={{
@@ -235,7 +227,6 @@ const HeroScene = () => {
             </span>
           </h1>
 
-          {/* Subtitle - FIXED text color for light mode */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -251,7 +242,6 @@ const HeroScene = () => {
             Create projects, assign tasks, track progress — all in one beautiful workspace built for modern teams.
           </motion.p>
 
-          {/* Buttons - FIXED sign in button for light mode */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -289,7 +279,6 @@ const HeroScene = () => {
         </motion.div>
       </div>
 
-      {/* Scroll hint - FIXED colors for light mode */}
       <motion.div
         className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none"
         style={{ bottom: '4%', zIndex: 4 }}
