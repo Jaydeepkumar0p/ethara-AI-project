@@ -19,7 +19,7 @@ const HomePage = () => {
 
   return (
     <div className="overflow-x-hidden">
-      {/* Cinematic Hero */}
+      {/* Cinematic Hero - Remove negative margin if HeroScene has its own spacing */}
       <Suspense fallback={
         <div className="h-screen flex items-center justify-center"
           style={{
@@ -37,8 +37,8 @@ const HomePage = () => {
         <HeroScene />
       </Suspense>
 
-      {/* Features Section */}
-      <section className="relative py-24 px-4">
+      {/* Features Section - Reduced padding from py-24 to py-12 */}
+      <section className="relative py-12 px-4"> {/* Changed from py-24 to py-12 */}
         <div className="absolute inset-0 -z-10"
           style={{
             background: theme === 'dark'
@@ -52,7 +52,7 @@ const HomePage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+            className="text-center mb-12" // Reduced from mb-16 to mb-12
           >
             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
               Everything your team needs
@@ -82,10 +82,10 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Tech stack strip */}
-      <section className="py-12 border-y border-base-300">
+      {/* Tech stack strip - Reduced padding */}
+      <section className="py-6 border-y border-base-300"> {/* Changed from py-12 to py-6 */}
         <div className="max-w-4xl mx-auto px-4">
-          <p className="text-center text-xs text-base-content/30 mb-6 tracking-widest uppercase">Built with</p>
+          <p className="text-center text-xs text-base-content/30 mb-4 tracking-widest uppercase">Built with</p> {/* Reduced from mb-6 to mb-4 */}
           <div className="flex flex-wrap justify-center gap-4 text-sm text-base-content/50">
             {['React + Vite', 'Node.js + Express', 'MongoDB + Mongoose', 'Zustand', 'Framer Motion', 'Tailwind + DaisyUI', 'Nodemailer', 'JWT Auth'].map(t => (
               <span key={t} className="px-3 py-1.5 rounded-full border border-base-300 bg-base-200 font-mono text-xs">{t}</span>
@@ -94,8 +94,8 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 px-4 text-center">
+      {/* CTA Section - Reduced padding */}
+      <section className="py-16 px-4 text-center"> {/* Changed from py-24 to py-16 */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -137,8 +137,8 @@ const HomePage = () => {
         </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-base-300 py-8 px-4">
+      {/* Footer - Reduced padding */}
+      <footer className="border-t border-base-300 py-6 px-4"> {/* Changed from py-8 to py-6 */}
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md flex items-center justify-center text-sm"
