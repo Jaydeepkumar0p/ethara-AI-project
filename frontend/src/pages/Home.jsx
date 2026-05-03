@@ -20,32 +20,39 @@ const HomePage = () => {
   return (
     <div className="overflow-x-hidden">
       {/* Cinematic Hero */}
-      <Suspense fallback={
-        <div className="h-screen flex items-center justify-center"
-          style={{
-            background: theme === 'dark'
-              ? 'linear-gradient(135deg, #0a0a1a, #0d0d2b, #080814)'
-              : 'linear-gradient(135deg, #7c3aed, #a855f7, #f97316)'
-          }}
-        >
-          <div className="text-center text-white">
-            <div className="text-5xl mb-4">⚡</div>
-            <div className="loading loading-dots loading-md" />
+      <Suspense
+        fallback={
+          <div
+            className="h-screen flex items-center justify-center"
+            style={{
+              background:
+                theme === 'dark'
+                  ? 'linear-gradient(135deg, #0a0a1a, #0d0d2b, #080814)'
+                  : 'linear-gradient(135deg, #7c3aed, #a855f7, #f97316)',
+            }}
+          >
+            <div className="text-center text-white">
+              <div className="text-5xl mb-4">⚡</div>
+              <div className="loading loading-dots loading-md" />
+            </div>
           </div>
-        </div>
-      }>
+        }
+      >
         <HeroScene />
       </Suspense>
 
       {/* Features Section */}
       <section className="relative py-24 px-4">
-        <div className="absolute inset-0 -z-10"
+        <div
+          className="absolute inset-0 -z-10"
           style={{
-            background: theme === 'dark'
-              ? 'radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 70%)'
-              : 'radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.04) 0%, transparent 70%)'
+            background:
+              theme === 'dark'
+                ? 'radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 70%)'
+                : 'radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.04) 0%, transparent 70%)',
           }}
         />
+
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -82,19 +89,36 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Tech stack strip */}
+      {/* Tech stack */}
       <section className="py-12 border-y border-base-300">
         <div className="max-w-4xl mx-auto px-4">
-          <p className="text-center text-xs text-base-content/30 mb-6 tracking-widest uppercase">Built with</p>
+          <p className="text-center text-xs text-base-content/30 mb-6 tracking-widest uppercase">
+            Built with
+          </p>
+
           <div className="flex flex-wrap justify-center gap-4 text-sm text-base-content/50">
-            {['React + Vite', 'Node.js + Express', 'MongoDB + Mongoose', 'Zustand', 'Framer Motion', 'Tailwind + DaisyUI', 'Nodemailer', 'JWT Auth'].map(t => (
-              <span key={t} className="px-3 py-1.5 rounded-full border border-base-300 bg-base-200 font-mono text-xs">{t}</span>
+            {[
+              'React + Vite',
+              'Node.js + Express',
+              'MongoDB + Mongoose',
+              'Zustand',
+              'Framer Motion',
+              'Tailwind + DaisyUI',
+              'Nodemailer',
+              'JWT Auth',
+            ].map((t) => (
+              <span
+                key={t}
+                className="px-3 py-1.5 rounded-full border border-base-300 bg-base-200 font-mono text-xs"
+              >
+                {t}
+              </span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="py-24 px-4 text-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
@@ -103,30 +127,34 @@ const HomePage = () => {
           transition={{ duration: 0.6 }}
           className="max-w-2xl mx-auto"
         >
-          <div className="inline-block text-5xl mb-6">🚀</div>
+          <div className="text-5xl mb-6">🚀</div>
+
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
             Ready to ship faster?
           </h2>
+
           <p className="text-base-content/50 mb-8 text-lg">
             Join your team on TaskFlow. Free forever for small teams.
           </p>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/register">
               <motion.button
                 className="px-10 py-4 rounded-xl font-bold text-white text-base font-display"
                 style={{
                   background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  boxShadow: '0 8px 32px rgba(99,102,241,0.4)'
+                  boxShadow: '0 8px 32px rgba(99,102,241,0.4)',
                 }}
-                whileHover={{ scale: 1.05, boxShadow: '0 12px 40px rgba(99,102,241,0.5)' }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.97 }}
               >
                 Start for Free →
               </motion.button>
             </Link>
+
             <Link to="/login">
               <motion.button
-                className="px-10 py-4 rounded-xl font-semibold text-sm border border-base-300 hover:border-primary/40 transition-colors"
+                className="px-10 py-4 rounded-xl font-semibold text-sm border border-base-300"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
               >
@@ -141,10 +169,15 @@ const HomePage = () => {
       <footer className="border-t border-base-300 py-8 px-4">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md flex items-center justify-center text-sm"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>⚡</div>
+            <div
+              className="w-6 h-6 rounded-md flex items-center justify-center text-sm"
+              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+            >
+              ⚡
+            </div>
             <span className="font-display font-bold text-sm">TaskFlow</span>
           </div>
+
           <p className="text-xs text-base-content/30">
             Built with ❤️ using MERN Stack · Full-Stack Assignment
           </p>
