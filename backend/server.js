@@ -98,6 +98,32 @@ app.use((err, req, res, next) => {
 });
 
 
+
+app.get("/api/email-check", async (req, res) => {
+  const nodemailer = require("nodemailer");
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      }
+    });
+
+    await transporter.verify();
+
+    res.json({ ok: true });
+
+  } catch (err) {
+    console.error(err);
+    res.json({ ok: false, error: err.message });
+  }
+});
+
+
 // ========================
 // ✅ MONGODB CONNECTION
 // ========================
