@@ -2,11 +2,14 @@ const nodemailer = require('nodemailer');
 
 const createTransport = () => nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT),
-  secure: process.env.EMAIL_PORT === '465',
+  port: Number(process.env.EMAIL_PORT),
+  secure: Number(process.env.EMAIL_PORT) === 465,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
@@ -155,7 +158,7 @@ const sendEmail = async (to, templateName, ...args) => {
     return true;
   } catch (error) {
     console.error('❌ Email error:', error.message);
-    return false; // Don't throw - email failures shouldn't break the app
+    return false;
   }
 };
 
