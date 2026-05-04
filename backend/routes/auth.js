@@ -11,10 +11,13 @@ const signToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, {
   expiresIn: process.env.JWT_EXPIRES_IN || '7d'
 });
 
+// Helper — lowercase + trim WITHOUT removing dots (fixes gmail dot issue)
+const sanitizeEmail = (v) => v.toLowerCase().trim();
+
 // POST /api/auth/register
 router.post('/register', [
   body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be 2-50 characters'),
-  body('email').isEmail().normalizeEmail().withMessage('Invalid email'),
+  body('email').isEmail().withMessage('Invalid email').customSanitizer(sanitizeEmail),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   body('role').optional().isIn(['admin', 'member']).withMessage('Invalid role')
 ], async (req, res, next) => {
@@ -32,7 +35,7 @@ router.post('/register', [
     }
 
     const user = await User.create({ name, email, password, role: role || 'member' });
-    
+
     // Send welcome email (non-blocking)
     sendEmail(user.email, 'welcome', user.name);
 
@@ -49,7 +52,7 @@ router.post('/register', [
 
 // POST /api/auth/login
 router.post('/login', [
-  body('email').isEmail().normalizeEmail(),
+  body('email').isEmail().withMessage('Invalid email').customSanitizer(sanitizeEmail),
   body('password').notEmpty().withMessage('Password is required')
 ], async (req, res, next) => {
   try {
@@ -60,7 +63,7 @@ router.post('/login', [
 
     const { email, password } = req.body;
     const user = await User.findOne({ email }).select('+password');
-    
+
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
@@ -108,12 +111,12 @@ router.put('/profile', protect, [
 
 // POST /api/auth/forgot-password
 router.post('/forgot-password', [
-  body('email').isEmail().normalizeEmail()
+  body('email').isEmail().withMessage('Invalid email').customSanitizer(sanitizeEmail)
 ], async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
-    
+
     if (!user) {
       return res.json({ message: 'If that email exists, a reset link has been sent.' });
     }
